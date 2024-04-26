@@ -6,6 +6,20 @@
 #include <algorithm>
 using namespace std;
 
+struct HRML {
+  string tag;
+  map<string, string> attributes;
+  map<string, HRML*> sub_tags;
+};
+
+// used to track all the hrml tags as we read them
+// we will pop one whenever we see its closing tag and store it inside
+// the item before it, unless it is the last item, in which case, we do
+// nothing. the last item will be used as the starting point for queries.
+// it is essentially a linked list, where there can be multiple links from a
+// node
+HRML* STACK[20];
+
 void read_hrml(string line, map<string, map<string, string>> DICT) {
   // <tag1 value = "HelloWorld">
   // tag1: { value: "HelloWorld", .. }
@@ -45,6 +59,7 @@ void read_hrml(string line, map<string, map<string, string>> DICT) {
       // attribName = "value">
       // attribName2="value" ..>
       loc++; // go to start of attribute name
+      map<string, string> sub_dict;
 
       while (ch != '>') {
         string attribName = "";
@@ -70,10 +85,28 @@ void read_hrml(string line, map<string, map<string, string>> DICT) {
         
         string attribValue = "";
         ch = line[loc];
+        while (ch != '"') {
+          attribValue += ch;
+          loc++;
+          ch = line[loc];
+        }
         
         assert(line[loc] == '"');
         loc++;
+
+        sub_dict[attribName] = attribValue;
+        cout << attribName << " => " << attribValue << endl;
+
+        ch = line[loc];
+        if (ch == ' ') {
+          loc++;
+          ch = line[loc];
+        }
       }
+
+      assert(ch == '>');
+      loc++;
+      assert(line.size() == loc);
     }
   }
 }
@@ -102,7 +135,7 @@ int main() {
   for (; _q < Q; _q++) {
     string query;
     getline(cin, query);
-    cout << process_query(query, DICT) << endl;
+    // cout << process_query(query, DICT) << endl;
   }
   return 0;
 }
