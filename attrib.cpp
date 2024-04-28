@@ -11,9 +11,10 @@ struct Tag {
   map<string, Tag*> children;
 };
 
-Tag* parse_hrml(vector<string> lines) {
+map<string, Tag*> parse_hrml(vector<string> lines) {
   vector<Tag*> stack;
   Tag *root = NULL;
+  map<string, Tag*> top_tags;
 
   for (auto line : lines) {
     int i = 0;
@@ -108,6 +109,7 @@ Tag* parse_hrml(vector<string> lines) {
 
       if (stack.empty()) {
         // this is the root node
+        top_tags[tag] = node;
         root = node;
       } else {
         // it is nested inside another node
@@ -118,19 +120,26 @@ Tag* parse_hrml(vector<string> lines) {
     }
 
   }
-  return root;
+  return top_tags;
 }
 
-string query_hrml(Tag* root, string q) {
-  Tag *cur = root;
+string query_hrml(map<string, Tag*> root, string q) {
+  Tag *cur;
   size_t tilde = q.find('~');
   int i = 0;
 
   // read first tag to match root
   size_t first_dot = q.find('.');
   if (first_dot != string::npos) {
+    string first_tag = q.substr(0, first_dot);
+    if (root.find(first_tag) != root.end()) {
+      cur = root[first_tag];
+    } else {
+      return "Not Found!";
+    }
+
+    i = first_dot + 1; // start matching past the first tag
     while (i < tilde) {
-      // read a tag section before a .
       string tag = "";
       char c = q[i];
       while(c != '.' && c != '~') {
@@ -144,24 +153,32 @@ string query_hrml(Tag* root, string q) {
         c = q[i];
       }
 
-      cout << "searching " << cur->identifier << " for " << tag << endl;
       if (cur->identifier == tag) break;
+      if (cur->children.find(tag) == cur->children.end()) {
+        return "Not Found!";
+      }
       cur = cur->children[tag];
     }
   } else {
-    // do nothing
+    string first_tag = q.substr(0, tilde);
+    // cout << "SHORT HRML: " << first_tag << endl;
+    if (root.find(first_tag) != root.end()) {
+      // cout << "SHORT HRML: " << cur->identifier << endl;
+      cur = root[first_tag];
+    } else {
+      return "Not Found!";
+    }
+    i = tilde; // start matching past the first tag
   }
 
-
-  cout << "i holds " << q[i] << endl;
   assert(q[i] == '~');
   i++;
   string attrib = q.substr(i, q.size());
-  cout << "looking for attribute " <<  attrib << endl;
+  // cout << "SHORT HRML search: " << attrib << endl;
   if (cur->attribs.find(attrib) != cur->attribs.end()) {
     return cur->attribs[attrib];
   } else {
-    return "Not found!";
+    return "Not Found!";
   }
 }
 
@@ -180,7 +197,7 @@ int main() {
     getline(cin, line);
     hrml.push_back(line);
   }
-  Tag *root = parse_hrml(hrml);
+  map<string, Tag*> root = parse_hrml(hrml);
 
   int _q = 0;
   for (; _q < Q; _q++) {
