@@ -1,6 +1,7 @@
 #include <cmath>
 #include <cstdio>
 #include <map>
+#include <queue>
 #include <cassert>
 #include <iostream>
 #include <algorithm>
@@ -9,7 +10,7 @@ using namespace std;
 struct HRML {
   string tag;
   map<string, string> attributes;
-  map<string, HRML*> sub_tags;
+  map<string, size_t> sub_tags;
 };
 
 // used to track all the hrml tags as we read them
@@ -18,7 +19,7 @@ struct HRML {
 // nothing. the last item will be used as the starting point for queries.
 // it is essentially a linked list, where there can be multiple links from a
 // node
-HRML* STACK[20];
+HRML STACK[20];
 int STACK_IN = 0;
 
 void read_hrml(string line) {
@@ -44,11 +45,11 @@ void read_hrml(string line) {
 
     // make sure the closing tag we just read matches the 
     // tag of the last item in the stack
-    HRML* latest_hrml = STACK[STACK_IN];
-    assert(latest_hrml->tag == tag);
+    HRML latest_hrml = STACK[STACK_IN];
+    assert(latest_hrml.tag == tag);
     STACK_IN--;
-    HRML* cur_hrml = STACK[STACK_IN];
-    cur_hrml->sub_tags[tag] = latest_hrml;
+    HRML cur_hrml = STACK[STACK_IN];
+    cur_hrml.sub_tags[tag] = STACK_IN+1;
   } else {
     char ch = line[loc];
     string tag = "";
@@ -60,9 +61,8 @@ void read_hrml(string line) {
 
     if (ch == '>') {
       // there are no attributes
-      HRML* node = new HRML{
-        .tag = tag,
-      };
+      HRML node = STACK[STACK_IN];
+      node.tag = tag;
       assert(STACK_IN < 20);
       STACK[STACK_IN] = node;
       STACK_IN++;
@@ -119,11 +119,9 @@ void read_hrml(string line) {
       }
 
       assert(ch == '>');
-      // there are no attributes
-      HRML* node = new HRML{
-        .tag = tag,
-        .attributes = attrib_dict,
-      };
+      HRML node = STACK[STACK_IN];
+      node.tag = tag;
+      node.attributes = attrib_dict;
       assert(STACK_IN < 20);
       STACK[STACK_IN] = node;
       STACK_IN++;
@@ -159,11 +157,5 @@ int main() {
     // cout << process_query(query, DICT) << endl;
   }
 
-  HRML* root = STACK[0];
-  vector<HRML*> queue;
-  queue.push_back(root);
-  while (!queue.empty()) {
-  }
-  
   return 0;
 }
