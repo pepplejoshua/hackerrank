@@ -19,8 +19,9 @@ struct HRML {
 // it is essentially a linked list, where there can be multiple links from a
 // node
 HRML* STACK[20];
+int STACK_IN = 0;
 
-void read_hrml(string line, map<string, map<string, string>> DICT) {
+void read_hrml(string line) {
   // <tag1 value = "HelloWorld">
   // tag1: { value: "HelloWorld", .. }
   int loc = 0;
@@ -40,6 +41,14 @@ void read_hrml(string line, map<string, map<string, string>> DICT) {
     }
     loc++; // go to newline
     assert(line.size() == loc);
+
+    // make sure the closing tag we just read matches the 
+    // tag of the last item in the stack
+    HRML* latest_hrml = STACK[STACK_IN];
+    assert(latest_hrml->tag == tag);
+    STACK_IN--;
+    HRML* cur_hrml = STACK[STACK_IN];
+    cur_hrml->sub_tags[tag] = latest_hrml;
   } else {
     char ch = line[loc];
     string tag = "";
@@ -51,7 +60,12 @@ void read_hrml(string line, map<string, map<string, string>> DICT) {
 
     if (ch == '>') {
       // there are no attributes
-      DICT[tag] = map<string, string>();
+      HRML* node = new HRML{
+        .tag = tag,
+      };
+      assert(STACK_IN < 20);
+      STACK[STACK_IN] = node;
+      STACK_IN++;
       loc++; // go to newline
       assert(line.size() == loc);
     } else {
@@ -59,7 +73,7 @@ void read_hrml(string line, map<string, map<string, string>> DICT) {
       // attribName = "value">
       // attribName2="value" ..>
       loc++; // go to start of attribute name
-      map<string, string> sub_dict;
+      map<string, string> attrib_dict;
 
       while (ch != '>') {
         string attribName = "";
@@ -94,7 +108,7 @@ void read_hrml(string line, map<string, map<string, string>> DICT) {
         assert(line[loc] == '"');
         loc++;
 
-        sub_dict[attribName] = attribValue;
+        attrib_dict[attribName] = attribValue;
         cout << attribName << " => " << attribValue << endl;
 
         ch = line[loc];
@@ -105,6 +119,14 @@ void read_hrml(string line, map<string, map<string, string>> DICT) {
       }
 
       assert(ch == '>');
+      // there are no attributes
+      HRML* node = new HRML{
+        .tag = tag,
+        .attributes = attrib_dict,
+      };
+      assert(STACK_IN < 20);
+      STACK[STACK_IN] = node;
+      STACK_IN++;
       loc++;
       assert(line.size() == loc);
     }
@@ -123,12 +145,11 @@ int main() {
   // skip newline character from the N Q line
   cin.ignore(1);
 
-  map<string, map<string, string>> DICT;
   int _h = 0;
   for (; _h < N; _h++) {
     string line;
     getline(cin, line);
-    read_hrml(line, DICT);
+    read_hrml(line);
   }
 
   int _q = 0;
@@ -137,5 +158,12 @@ int main() {
     getline(cin, query);
     // cout << process_query(query, DICT) << endl;
   }
+
+  HRML* root = STACK[0];
+  vector<HRML*> queue;
+  queue.push_back(root);
+  while (!queue.empty()) {
+  }
+  
   return 0;
 }
