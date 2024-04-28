@@ -1,2 +1,5 @@
 *.dSYM
+.vscode/settings.json
+
 attrib
+msg_order
