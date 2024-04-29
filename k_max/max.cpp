@@ -16,12 +16,31 @@ for i = 1:
   but arr[dq.back()] (3) < arr[i] (4), so pop_back
   dq = [1]
   since i (1) >= 1 (k - 1 = 2 - 1 = 1), 
-  print arr[1] (4) for this window
+  print arr[dq.front()] (4) for this window
 
 for i = 2:
   starts with dq = [1]
-  since 1 is > i - k (2 - 2 = 0), we leave 1
-  but arr[dq.back]
+  since dq.front() (1) > i - k (2 - 2 = 0), we leave 1
+  but arr[dq.back()] (4) < arr[i] (6), so pop_back
+  dq = [2]
+  since i (2) >= 1 (k - 1 = 2 - 1 = 1),
+  print arr[dq.front()] (6) for this window
+
+for i = 3:
+  starts with dq = [2]
+  since dq.front() (2) > i - k (3 - 2 = 1), we leave 2 (still in window)
+  arr[dq.back()] (6) > arr[i] (3), so no pop_back
+  dq = [2, 3]
+  since i (3) >= 1 (k - 1 = 2 - 1, 1),
+  print arr[dq.front()] (6) for this window
+
+for i = 4:
+  starts with dq = [2, 3]
+  since dq.front() (2) == (!>) i - k (4 - 2 = 2), we pop 2
+  but arr[dq.back()] (3) < arr[i] (4), so pop_back
+  dq = [4]
+  since i (4) >= 1 (k - 1 = 2 - 1, 1),
+  print arr[dq.front()] (4) for this window
   
 */
 void printKMax3(int arr[], int n, int k) {
@@ -49,6 +68,12 @@ void printKMax3(int arr[], int n, int k) {
   cout << endl;
 }
 
+// worst performing since we first load all the array elements
+// into deque before doing any actual work instead of using it
+// to hold and filter out array elements by lifetime (i.e, is it
+// in i - k range, since i will be the index of last element in the
+// array) as well as size (we remove things smaller than the current
+// element, making sure only the biggest element is at the front)
 void printKMax2(int arr[], int n, int k){
   deque<int> dq(n);
   // load deque
@@ -65,6 +90,10 @@ void printKMax2(int arr[], int n, int k){
   cout << endl;
 }
 
+// second fastest behind printKMax3 since it does not load up
+// deque like printKMax3, otherwise it uses the same naive approach
+// of actually comparing elements vs what seems like casually filtering
+// using deque in printKMax3
 void printKMax(int arr[], int n, int k) {
   int start = 0;
 
