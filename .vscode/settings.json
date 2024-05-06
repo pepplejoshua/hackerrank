@@ -8,7 +8,12 @@
     "istream": "cpp",
     "map": "cpp",
     "__config": "cpp",
-    "deque": "cpp"
+    "deque": "cpp",
+    "set": "cpp",
+    "unordered_set": "cpp",
+    "__bit_reference": "cpp",
+    "bitset": "cpp",
+    "unordered_map": "cpp"
   },
   "C_Cpp.default.cppStandard": "c++11",
 }
