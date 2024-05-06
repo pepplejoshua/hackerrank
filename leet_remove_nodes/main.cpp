@@ -25,7 +25,42 @@ ListNode* setup(vector<int> nums) {
   return head;
 }
 
+ListNode* reverse(ListNode* head){
+  ListNode* prev=NULL;
+  ListNode* curr=head;
+  ListNode* next=NULL;
+  while(curr != NULL){
+    next=curr->next;
+    curr->next=prev;
+    prev=curr;
+    curr=next;
+  }
+  return prev;
+}
+
+// after looking at the problem, my solution and other solutions for
+// a while longer, the last item in the linked list will always be 
+// preserved even if it is lower than the current max
 ListNode* removeNodes(ListNode* head) {
+  head=reverse(head);
+  ListNode* prev = head;
+  ListNode* curr = head;
+  int maxval = 0;
+
+  while (curr != NULL) {
+    if (curr->val >= maxval) {
+      maxval=curr->val;
+      prev=curr;
+    } else {
+      prev->next=curr->next;
+    }
+    curr=curr->next;
+  }
+  head=reverse(head);
+  return head;
+}
+
+ListNode* removeNodes2(ListNode* head) {
   deque<ListNode*> dq;
 
   ListNode* cur = head;
@@ -55,8 +90,6 @@ ListNode* removeNodes(ListNode* head) {
 
   return new_head;
 }
-
-// [998,961,943,920,698]
 
 int main() {
   vector<int> nums;
